@@ -9,7 +9,9 @@ description: |-
 
 The Livekit provider allows you to manage access tokens for [Livekit](https://livekit.io/).
 
-The changelog for this provider can be found here: <https://github.com/livekit/terraform-provider-livekit/releases>.
+The changelog for this provider can be found here: <https://github.com/siinm/terraform-provider-livekit/releases>.
+
+This provider is independently developed and is not affiliated with the LiveKit company.
 
 ## Example Usage
 
