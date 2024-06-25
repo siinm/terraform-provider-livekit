@@ -91,7 +91,7 @@ func (p *LivekitProvider) Configure(ctx context.Context, req provider.ConfigureR
 
 func (p *LivekitProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		NewExampleResource,
+		NewAccessTokenResource,
 	}
 }
 

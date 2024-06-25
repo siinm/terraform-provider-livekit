@@ -19,11 +19,10 @@ import (
 	"github.com/livekit/protocol/auth"
 )
 
-// Ensure provider defined types fully satisfy framework interfaces.
 var _ resource.Resource = &AccessTokenResource{}
 var _ resource.ResourceWithImportState = &AccessTokenResource{}
 
-func NewExampleResource() resource.Resource {
+func NewAccessTokenResource() resource.Resource {
 	return &AccessTokenResource{}
 }
 
