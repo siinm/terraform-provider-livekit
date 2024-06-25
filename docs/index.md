@@ -19,8 +19,8 @@ This provider is independently developed and is not affiliated with the LiveKit 
 
 ```terraform
 provider "livekit" {
-  api_key    = var.livekit_api_key
-  api_secret = var.livekit_api_secret
+  api_key    = "abc"
+  api_secret = "123"
 }
 
 // Create an access token
