@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -33,10 +34,13 @@ type AccessTokenResource struct {
 
 // AccessTokenResourceModel describes the resource data model.
 type AccessTokenResourceModel struct {
-	Room     types.String `tfsdk:"room"`
-	Identity types.String `tfsdk:"identity"`
-	ValidFor types.String `tfsdk:"valid_for"`
-	Token    types.String `tfsdk:"token"`
+	Room           types.String `tfsdk:"room"`
+	Identity       types.String `tfsdk:"identity"`
+	CanPublish     types.Bool   `tfsdk:"can_publish"`
+	CanPublishData types.Bool   `tfsdk:"can_publish_data"`
+	CanSubscribe   types.Bool   `tfsdk:"can_subscribe"`
+	ValidFor       types.String `tfsdk:"valid_for"`
+	Token          types.String `tfsdk:"token"`
 }
 
 func (r *AccessTokenResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -57,10 +61,31 @@ func (r *AccessTokenResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 			},
 			"identity": schema.StringAttribute{
-				MarkdownDescription: "Token identy to connect into the room",
+				MarkdownDescription: "Token identity to connect into the room",
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"can_publish": schema.BoolAttribute{
+				MarkdownDescription: "Can Publish",
+				Required:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+				},
+			},
+			"can_publish_data": schema.BoolAttribute{
+				MarkdownDescription: "Can publish data",
+				Required:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+				},
+			},
+			"can_subscribe": schema.BoolAttribute{
+				MarkdownDescription: "Can subscribe",
+				Required:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
 				},
 			},
 			"valid_for": schema.StringAttribute{
@@ -121,7 +146,11 @@ func (r *AccessTokenResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	grant := &auth.VideoGrant{
-		Room: data.Room.ValueString(),
+		Room:           data.Room.ValueString(),
+		CanPublish:     data.CanPublish.ValueBoolPointer(),
+		CanPublishData: data.CanPublishData.ValueBoolPointer(),
+		CanSubscribe:   data.CanSubscribe.ValueBoolPointer(),
+		RoomJoin:       true,
 	}
 
 	at := r.apiKeys.AddGrant(grant).
