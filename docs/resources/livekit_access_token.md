@@ -23,6 +23,9 @@ resource "livekit_access_token" "example_token" {
   room     = "example_room"
   identity = "example_identity"
   valid_for = "1h"
+  can_publish = true
+  can_publish_data = true
+  can_subscribe = true
 }
 ```
 
@@ -32,6 +35,10 @@ resource "livekit_access_token" "example_token" {
 
 - `room` (String) The name of the room.
 - `identity` (String) The identity for the token to connect to the room.
+- `can_publish`      (Boolean)
+- `can_publish_data` (Boolean)
+- `can_subscribe`    (Boolean)
+
 
 ##### Optional
 
