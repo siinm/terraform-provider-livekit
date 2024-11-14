@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -170,6 +171,17 @@ func (r *AccessTokenResource) Create(ctx context.Context, req resource.CreateReq
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
+type LivekitTokenClaims struct {
+	Video struct {
+		Room           string `json:"room"`
+		CanPublish     bool   `json:"canPublish"`
+		CanPublishData bool   `json:"canPublishData"`
+		CanSubscribe   bool   `json:"canSubscribe"`
+		RoomJoin       bool   `json:"roomJoin"`
+	} `json:"video"`
+	jwt.Claims
+}
+
 func (r *AccessTokenResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data AccessTokenResourceModel
 
@@ -180,8 +192,39 @@ func (r *AccessTokenResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
+	if !data.Token.IsNull() && !data.Token.IsUnknown() {
+		token, err := parseToken(data.Token.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError("Error parsing token", err.Error())
+			return
+		}
+		data.Room = types.StringValue(token.Video.Room)
+		data.CanPublish = types.BoolValue(token.Video.CanPublish)
+		data.CanPublishData = types.BoolValue(token.Video.CanPublishData)
+		data.CanSubscribe = types.BoolValue(token.Video.CanSubscribe)
+	}
+
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func parseToken(jwtToken string) (*LivekitTokenClaims, error) {
+	opts := []jwt.ParserOption{
+		jwt.WithStrictDecoding(),
+		jwt.WithoutClaimsValidation(),
+	}
+	parser := jwt.NewParser(opts...)
+
+	token, _, err := parser.ParseUnverified(jwtToken, &LivekitTokenClaims{})
+	if err != nil {
+		return nil, fmt.Errorf("error parsing token in state %w", err)
+	}
+
+	if claims, ok := token.Claims.(*LivekitTokenClaims); ok {
+		return claims, nil
+	} else {
+		return nil, fmt.Errorf("error parsing token in state: claims are not of type LivekitTokenClaims")
+	}
 }
 
 func (r *AccessTokenResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
